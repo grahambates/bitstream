@@ -134,11 +134,7 @@ Demo:
 		bsr.s	LookupSin
 		move.w	d0,d2
 
-		; move.w	d3,d5
-		; add.w d5,d5
-		; divu	#3,d5					; double effect
-		mulu	#3,d5
-		; add.w d5,d5
+		divu	#3,d5					; double effect
 		bsr.s	LookupSin
 		add.w	d0,d2
 
