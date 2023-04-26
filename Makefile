@@ -1,45 +1,29 @@
-subdirs := $(wildcard */)
-vasm_sources := $(wildcard *.asm) $(wildcard $(addsuffix *.asm, $(subdirs)))
-vasm_objects := $(addprefix obj/, $(patsubst %.asm,%.o,$(notdir $(vasm_sources))))
-objects := $(vasm_objects)
-
+source = main.asm
 program = out/a
-OUT = $(program)
-CC = m68k-amiga-elf-gcc
-VASM = vasmm68k_mot
 
-ifdef OS
-	WINDOWS = 1
-	SHELL = cmd.exe
-endif
+FSUAE = ~/projects/vscode-amiga-debug/bin/darwin/fs-uae/fs-uae
+VASM = ~/amiga/bin/vasmm68k_mot
 
-CCFLAGS = -g -MP -MMD -m68000 -Ofast -nostdlib -Wextra -Wno-unused-function -Wno-volatile-register-var -fomit-frame-pointer -fno-tree-loop-distribution -flto -fwhole-program -fno-exceptions
-LDFLAGS = -Wl,--emit-relocs,-Ttext=0,-Map=$(OUT).map
-VASMFLAGS = -m68000 -Felf -opt-fconst -nowarn=62 -dwarf=3 -quiet -x -DDEBUG=1
+VASMFLAGS = -m68000 -x -opt-size -Fhunkexe -kick1hunks -nosym -pic
+UAEFLAGS = --amiga_model=A500 --floppy_drive_0_sounds=off
 
-all: $(OUT).exe
+exe: $(program).exe
 
-$(OUT).exe: $(OUT).elf
-	$(info Elf2Hunk $(program).exe)
-	@elf2hunk $(OUT).elf $(OUT).exe -s
+run: exe
+	$(FSUAE) $(UAEFLAGS) --hard_drive_1=./out
 
-$(OUT).elf: $(objects)
-	$(info Linking $(program).elf)
-	$(CC) $(CCFLAGS) $(LDFLAGS) $(objects) -o $@
-	@m68k-amiga-elf-objdump --disassemble --no-show-raw-ins --visualize-jumps -S $@ >$(OUT).s
+$(program).d: $(source)
+	$(info Building dependencies for $<)
+	$(VASM) $(VASMFLAGS) -depend=make -quiet -o $(program).elf $< > $@
+	$(VASM) $(VASMFLAGS) -depend=make -quiet -o $(program).bb $<
+
+$(program).exe: $(source)
+	$(VASM) $< $(VASMFLAGS) -o $@
+
+-include $(program).d
 
 clean:
 	$(info Cleaning...)
-ifdef WINDOWS
-	@del /q obj\* out\*
-else
-	@$(RM) obj/* out/*
-endif
+	$(RM) out/*.*
 
--include $(objects:.o=.d)
-
-$(vasm_objects): obj/%.o : %.asm
-	$(info Assembling $<)
-	@$(VASM) $(VASMFLAGS) -o $@ $(CURDIR)/$<
-
-.PHONY: all clean
+.PHONY: rundist dist run exe clean
