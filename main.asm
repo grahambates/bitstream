@@ -22,7 +22,7 @@ DPF = 0								; enable dual playfield
 
 ; Screen buffer:
 SCREEN_W = DIW_W+16
-SCREEN_H = DIW_H
+SCREEN_H = 320
 
 DMASET = DMAF_SETCLR!DMAF_MASTER!DMAF_RASTER!DMAF_COPPER!DMAF_BLITTER
 INTSET = INTF_SETCLR!INTF_INTEN!INTF_VERTB
@@ -135,8 +135,12 @@ Demo:
 		move.w	d0,d2
 
 		; divu	#3,d5					; double effect
+		; ;asl #2,d5
 		; bsr.s	LookupSin
 		; add.w	d0,d2
+
+		and.w #3,d5
+		lsl d5,d2
 
 		add.w	#$40,d2
 
