@@ -98,7 +98,7 @@ Demo:
 .mainLoop:
 		; get and increment frame
 		lea	Data(pc),a5				; a5 = data
-		addq.l	#1,VBlank(a5)
+		addq.l	#2,VBlank(a5)
 		move.l	VBlank(a5),d3
 
 ; Scroll:
@@ -139,10 +139,10 @@ Demo:
 		; bsr.s	LookupSin
 		; add.w	d0,d2
 
-		and.w #3,d5
-		lsl d5,d2
+		; and.w #2,d5
+		; lsl d5,d2
 
-		add.w	#$40,d2
+		add.w	#$60,d2
 
 R = 64
 		move.w	#R-1,d7					; d7 = iterator
@@ -170,6 +170,7 @@ R = 64
 		bset	d6,(a0,d0.w)
 
 		add.w	#SIN_LEN*2/R,d3				; rotate
+		subq #2,d2
 		dbf	d7,.l
 
 ; Wait eof
