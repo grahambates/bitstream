@@ -76,7 +76,7 @@ Sin:		rs.w	SIN_LEN
 ; Populate sin table
 ;-------------------------------------------------------------------------------
 		lea	Data+Sin(pc),a0
-		moveq	#0,d0					; amp=16384, length=1024
+		moveq	#0,d0
 		move.w	#SIN_LEN/2+1,a1
 .l0		subq.l	#2,a1
 		move.l	d0,d1
