@@ -11,9 +11,9 @@ SPEED = 2
 DIW_W = 320
 DIW_H = 256
 BPLS = 1
-SCROLL = 1							; enable playfield scroll
+SCROLL = 1							; enable playfield scroll?
 INTERLEAVED = 0
-DPF = 0								; enable dual playfield
+DPF = 0								; enable dual playfield?
 
 ; Screen buffer:
 SCREEN_W = DIW_W+16
@@ -25,7 +25,6 @@ DMASET = DMAF_SETCLR!DMAF_MASTER!DMAF_RASTER!DMAF_COPPER
 ; Derived
 
 COLORS = 1<<BPLS
-
 SCREEN_BW = SCREEN_W/16*2					; byte-width of 1 bitplane line
 		ifne	INTERLEAVED
 SCREEN_MOD = SCREEN_BW*(BPLS-1)					; modulo (interleaved)
@@ -35,7 +34,6 @@ SCREEN_MOD = 0							; modulo (non-interleaved)
 SCREEN_BPL = SCREEN_BW*SCREEN_H					; bitplane offset (non-interleaved)
 		endc
 SCREEN_SIZE = SCREEN_BW*SCREEN_H*BPLS				; byte size of screen buffer
-
 DIW_BW = DIW_W/16*2
 DIW_MOD = SCREEN_BW-DIW_BW+SCREEN_MOD-SCROLL*2
 DIW_SIZE = DIW_BW*DIW_H*BPLS
