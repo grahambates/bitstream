@@ -5,10 +5,11 @@
 * Constants:
 ********************************************************************************
 
-C = vhposr
-Screen = $4000
+C = vhposr							; At least one of our custom reg writes can be (An) rather than (d,An)
+Screen = $1000							; Use a fixed address for screen buffer
 SIN_LEN = 256
-R = 64
+DOTS = 64
+SPEED = 2
 
 ; Display window:
 DIW_W = 320
@@ -23,7 +24,6 @@ SCREEN_W = DIW_W+16
 SCREEN_H = DIW_H+16
 
 DMASET = DMAF_SETCLR!DMAF_MASTER!DMAF_RASTER!DMAF_COPPER
-INTSET = INTF_SETCLR!INTF_INTEN!INTF_VERTB
 
 ;-------------------------------------------------------------------------------
 ; Derived
@@ -52,28 +52,26 @@ DIW_STOP = ((DIW_YSTOP-256)<<8)!(DIW_XSTOP-256)
 DDF_STRT = ((DIW_XSTRT-17)>>1)&$00fc-SCROLL*8
 DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
-		rsreset
-VBlank:		rs.l	1
-Sin:		rs.w	SIN_LEN
-
 ********************************************************************************
 		code_c
 ********************************************************************************
-
-; Minimal startup:
+		lea	Data(pc),a5
 		lea	custom+C,a6
+
+; No space for this ¯\_(ツ)_/¯
 		; move.w	#$7fff,d2				;clear all bits
 		; move.w	d2,dmacon-C(a6)				;in DMACON,
 		; move.w	d2,intena-C(a6)				;INTENA,
 		; move.w	d2,intreq-C(a6)				;and INTREQ
 
+; Use custom offset for some kind of palette!
+		move.l	a6,color00-C(a6)
+
 ; Init copper:
 		lea	Cop(pc),a0
 		move.l	a0,cop1lc-C(a6)
 
-********************************************************************************
-; Populate sin table
-;-------------------------------------------------------------------------------
+; Init sin table:
 		lea	Data+Sin(pc),a0
 		moveq	#0,d0
 		move.w	#SIN_LEN/2+1,a1
@@ -87,77 +85,73 @@ Sin:		rs.w	SIN_LEN
 		bne.b	.l0
 
 ; Clear initial screen:
-		lea Screen+SCREEN_SIZE,a4
+; This should leave a4 at the start of the screen buffer
+		lea	Screen+SCREEN_SIZE,a4
 		move.w	#SCREEN_SIZE/4,d0
-.cl		clr.l -(a4)
-		dbf d0,.cl
-
-
-		; movem.w d0/d4,color00-C(a6)
-		move.l a6,color00-C(a6)
+.cl		clr.l	-(a4)
+		dbf	d0,.cl
 
 ;-------------------------------------------------------------------------------
 .mainLoop:
-		; get and increment frame
-		lea	Data(pc),a5				; a5 = data
-		addq.l	#1,(a5)
+; Increment and read frame:
+		addq.l	#SPEED,(a5)
 		move.l	(a5),d3
 
-; Scroll:
+; Scroll screen left by frame count indefinately...
+; We'll run out of space eventually but hopefully no one sticks around that long!
+		; byte offset
 		move.w	d3,d0
-		moveq	#15,d6
-		and.w	d0,d6
-		not.w	d6
 		lsr.w	#4,d0
 		add.w	d0,d0
-		move.l	a4,a0				; a0 = screen
-		add.w	d0,a0
-
-		move.w	d6,a3					; a3 = pixel offset - need this for plot
-
-		; Update copper for scroll
-		move.w	d6,CopScroll-Data+2(a5)
+		lea	(a4,d0),a0				; a0 = screen
 		move.w	a0,CopBplPt-Data+2(a5)
+		; px shift
+		moveq	#15,d1
+		and.w	d3,d1
+		not.w	d1
+		move.w	d1,CopScroll-Data+2(a5)
+		; store in a spare register - need this later for plot offset
+		move.w	d1,a3
 
-; Clear rhs:
+; Clear word on right of buffer to stop data looping back round:
 		moveq	#DIW_BW,d0
-		move.w #SCREEN_H-1,d1
+		move.w	#SCREEN_H-1,d1
 .l2		add.w	d0,a0
-		clr.w 	(a0)+
+		clr.w	(a0)+
 		dbf	d1,.l2
 
-; Draw:
-		; Center draw screen ptr
+; Now we're going to draw a dot spiral...
+
+		; Offset a0 to center of screen:
 		sub.w	#11+140*SCREEN_BW,a0
 
-		; Get scale:
+		; Get scale (sin(frame)):
 		move.w	#SIN_LEN*2-2,d4
 		and.w	d4,d3
 		move.w	Sin(a5,d3.w),d2
 
-		; add.w	#$80,d2
-		; add.w	d0,d2
+		; Use frame*3 as start angle for rotation.
+		; This gives more variation than if it used the same period as scale.
+		mulu	#3,d3
 
-		mulu #3,d3
-
-		move.w	#R-1,d7					; d7 = iterator
+		move.w	#DOTS-1,d7				; d7 = iterator
 .l
-; circle coords
-		move.w	d3,d5
-		and.w	d4,d5
-		move.w	Sin(a5,d5.w),d1				; d1 = y
-
+		; x = cos(a)*scale/2
 		add.w	#SIN_LEN/2,d5				; offset for cos
 		and.w	d4,d5
-		move.w	Sin(a5,d5.w),d0				; d0 = x
-; scale
+		move.w	Sin(a5,d5.w),d0
+		muls	d2,d0
+		asr.w	#7,d0					; half x for some kind of perspective
+		sub.w	a3,d0					; adjust for bplcon0 scroll
+
+		; y = sin(a)*scale
+		move.w	d3,d5
+		and.w	d4,d5
+		move.w	Sin(a5,d5.w),d1
 		muls	d2,d1
 		asr.w	#6,d1
-		muls	d2,d0
-		asr.w	#7,d0
-		sub.w	a3,d0					; adjust for scroll
 
-; Plot
+		; Plot point:
 		mulu	#SCREEN_BW,d1
 		move.w	d0,d6
 		not.w	d6
@@ -165,16 +159,20 @@ Sin:		rs.w	SIN_LEN
 		add.w	d1,d0
 		bset	d6,(a0,d0.w)
 
-		addq	#SIN_LEN*2/R,d3				; rotate
-		subq	#1,d2
+		addq	#SIN_LEN*2/DOTS,d3			; increment angle
+		subq	#1,d2					; decrment scale (this creates the sprial)
 		dbf	d7,.l
 
-; Wait eof
-.sync
-		cmp.b	vhposr-C(a6),d7
+; Wait EOF
+.sync		cmp.b	vhposr-C(a6),d7
 		bne.s	.sync
-		bra	.mainLoop
 
+		bra.s	.mainLoop
+
+
+;-------------------------------------------------------------------------------
+; Copper list:
+; Some sacrafices have to be made here!
 Cop:
 		dc.w	dmacon,DMAF_SPRITE
 		; dc.w 	dmacon,DMASET
@@ -193,4 +191,11 @@ CopScroll:	dc.w	bplcon1,0
 CopBplPt:	dc.w	bpl0ptl,0
 		; dc.l	-2
 
+
+;-------------------------------------------------------------------------------
+; Treat space after code as BSS
+; We don't exit anyway so trash all the things!
 Data:
+		rsreset
+Frame:		rs.l	1
+Sin:		rs.w	SIN_LEN
