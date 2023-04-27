@@ -169,14 +169,11 @@ Sin:		rs.w	SIN_LEN
 
 Cop:
 		dc.w	dmacon,DMAF_SPRITE
-		;dc.w	dmacon,DMASET
-		; dc.w	fmode,0
 		dc.w	diwstrt,DIW_STRT
 		; dc.w	diwstop,DIW_STOP
 		dc.w	ddfstrt,DDF_STRT
 		dc.w	ddfstop,DDF_STOP
 		dc.w	bpl1mod,DIW_MOD
-		; dc.w	bpl2mod,DIW_MOD
 
 CopPal:
 		; dc.w	color00,$314
