@@ -6,7 +6,7 @@
 ********************************************************************************
 
 C = bltsize
-Screen = $d0000
+Screen = $a0000
 SIN_LEN = 256
 R = 64
 
@@ -119,15 +119,15 @@ Sin:		rs.w	SIN_LEN
 
 ; Draw:
 		; Center draw screen ptr
-		lea	32+(110*SCREEN_BW)(a0),a0
+		add.w	#32+110*SCREEN_BW,a0
 
 		; Get scale:
 		move.w	#SIN_LEN*2-2,d4
 		and.w	d4,d3
 		move.w	Sin(a5,d3.w),d2
 
-		add.w	#$80,d2
-		; add.w	d0,d2
+		; add.w	#$80,d2
+		add.w	d0,d2
 
 		move.w	#R-1,d7					; d7 = iterator
 .l
@@ -166,17 +166,15 @@ Sin:		rs.w	SIN_LEN
 
 Cop:
 		dc.w	dmacon,DMAF_SPRITE
-		;dc.w	dmacon,DMASET
-		; dc.w	fmode,0
 		dc.w	diwstrt,DIW_STRT
 		; dc.w	diwstop,DIW_STOP
 		dc.w	ddfstrt,DDF_STRT
-		; dc.w	ddfstop,DDF_STOP
-		; dc.w	bpl1mod,DIW_MOD
+		dc.w	ddfstop,DDF_STOP
+		dc.w	bpl1mod,DIW_MOD
 		; dc.w	bpl2mod,DIW_MOD
 
 CopPal:
-		dc.w	color00,$314
+		; dc.w	color00,$314
 		; dc.w	color01,$ffc
 		dc.w	bplcon0,BPLS<<(12+DPF)!DPF<<10!$200
 		dc.w	bpl0pt,Screen>>16
