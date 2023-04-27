@@ -4,7 +4,7 @@ program = out/a
 FSUAE = ~/projects/vscode-amiga-debug/bin/darwin/fs-uae/fs-uae
 VASM = ~/amiga/bin/vasmm68k_mot
 
-VASMFLAGS = -m68000 -x -opt-size -Fhunkexe -kick1hunks -nosym -pic
+VASMFLAGS = -m68000 -x -opt-size -showopt -Fhunkexe -kick1hunks -nosym -pic
 UAEFLAGS = --amiga_model=A500 --floppy_drive_0_sounds=off
 
 exe: $(program).exe

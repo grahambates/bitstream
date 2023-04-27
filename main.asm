@@ -6,7 +6,7 @@
 ********************************************************************************
 
 C = bltsize
-Screen = $a0000
+Screen = $d0000
 SIN_LEN = 256
 R = 64
 
@@ -22,7 +22,8 @@ DPF = 0								; enable dual playfield
 SCREEN_W = DIW_W+16
 SCREEN_H = DIW_H
 
-DMASET = DMAF_SETCLR!DMAF_RASTER!DMAF_COPPER!DMAF_BLITTER
+DMASET = DMAF_SETCLR!DMAF_MASTER!DMAF_RASTER!DMAF_COPPER!DMAF_BLITTER
+INTSET = INTF_SETCLR!INTF_INTEN!INTF_VERTB
 
 ;-------------------------------------------------------------------------------
 ; Derived
@@ -90,8 +91,8 @@ Sin:		rs.w	SIN_LEN
 .mainLoop:
 		; get and increment frame
 		lea	Data(pc),a5				; a5 = data
-		addq.l	#2,VBlank(a5)
-		move.l	VBlank(a5),d3
+		addq.l	#1,(a5)
+		move.l	(a5),d3
 
 ; Scroll:
 		move.w	d3,d0
@@ -100,8 +101,9 @@ Sin:		rs.w	SIN_LEN
 		not.w	d6
 		lsr.w	#4,d0
 		add.w	d0,d0
-		lea	Screen,a0				; a0 = screen
-		lea	-2(a0,d0.w),a0
+		lea	Screen-2,a0				; a0 = screen
+		; lea	(a0,d0.w),a0
+		add.w d0,a0
 
 		move.w	d6,a3					; a3 = pixel offset - need this for plot
 
@@ -115,7 +117,7 @@ Sin:		rs.w	SIN_LEN
 		move.w	d0,bltdmod-C(a6)
 		move.w	#$100,bltcon0-C(a6)
 		move.l	a0,bltdpt-C(a6)
-		move.w	#300*BPLS*64+1,bltsize-C(a6)
+		move.w	#300*BPLS*64+1,(a6)
 
 ; Draw:
 		; Center draw screen ptr
@@ -141,9 +143,9 @@ Sin:		rs.w	SIN_LEN
 		move.w	Sin(a5,d5.w),d0				; d0 = x
 ; scale
 		muls	d2,d1
-		asr.w	#7,d1
+		asr.w	#6,d1
 		muls	d2,d0
-		asr.w	#8,d0
+		asr.w	#7,d0
 		sub.w	a3,d0					; adjust for scroll
 
 ; Plot
@@ -166,16 +168,18 @@ Sin:		rs.w	SIN_LEN
 
 Cop:
 		dc.w	dmacon,DMAF_SPRITE
+		;dc.w	dmacon,DMASET
+		; dc.w	fmode,0
 		dc.w	diwstrt,DIW_STRT
 		; dc.w	diwstop,DIW_STOP
 		dc.w	ddfstrt,DDF_STRT
-		dc.w	ddfstop,DDF_STOP
-		dc.w	bpl1mod,DIW_MOD
+		; dc.w	ddfstop,DDF_STOP
+		; dc.w	bpl1mod,DIW_MOD
 		; dc.w	bpl2mod,DIW_MOD
 
 CopPal:
-		; dc.w	color00,$314
-		; dc.w	color01,$ffc
+		dc.w	color00,$314
+		dc.w	color01,$ffc
 		dc.w	bplcon0,BPLS<<(12+DPF)!DPF<<10!$200
 		dc.w	bpl0pt,Screen>>16
 CopScroll:	dc.w	bplcon1,0
