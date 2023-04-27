@@ -2,10 +2,11 @@
 		include	"hw.i"
 
 C = vhposr							; At least one of our custom reg writes can be (An) rather than (d,An)
-Screen = $1000							; Use a fixed address for screen buffer
+Screen = $1cae							; Use a fixed address for screen buffer
+	; this doubles a color01
 SIN_LEN = 256
 DOTS = 64
-SPEED = 2
+SPEED = 1
 
 ; Display window:
 DIW_W = 320
@@ -60,8 +61,6 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		; move.w	d2,intena-C(a6)				;INTENA,
 		; move.w	d2,intreq-C(a6)				;and INTREQ
 
-; Use custom offset for some kind of palette!
-		move.l	a6,color00-C(a6)
 
 ; Init copper:
 		lea	Cop(pc),a0
@@ -80,12 +79,17 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		add.l	a1,d0
 		bne.b	.sin
 
+
 ; Clear initial screen:
 ; This should leave a4 at the start of the screen buffer
 		lea	Screen+SCREEN_SIZE,a4
 		move.w	#SCREEN_SIZE/4-1,d0
 .cl		clr.l	-(a4)
 		dbf	d0,.cl
+
+
+; Use custom offset for some kind of palette!
+		movem.w	d0/a4,color00-C(a6)
 
 ;-------------------------------------------------------------------------------
 .mainLoop:
@@ -109,7 +113,7 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
 ; Clear word on right of buffer to stop data looping back round:
 		move.w	#SCREEN_H-1,d1
-.cw		lea	DIW_BW(a0),a0
+.cw		lea	SCREEN_BW-2(a0),a0
 		clr.w	(a0)+
 		dbf	d1,.cw
 
