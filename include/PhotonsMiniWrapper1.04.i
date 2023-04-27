@@ -72,10 +72,10 @@ WaitEOF:				;wait for end of frame
 	bsr.s WaitBlitter
 	move.w #$138,d0
 WaitRaster:				;Wait for scanline d0. Trashes d1.
-.l:	move.l 4(a6),d1
+.l:	move.l vposr(a6),d1
 	lsr.l #1,d1
 	lsr.w #7,d1
-	cmp.w d0,d1
+	cmp.w #$138,d1
 	bne.s .l			;wait until it matches (eq)
 	rts
 

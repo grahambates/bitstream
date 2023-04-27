@@ -87,8 +87,6 @@ Sin:		rs.w	SIN_LEN
 		add.l	a1,d0
 		bne.b	.l0
 
-		move.l (a0),color00-C(a6)
-
 ;-------------------------------------------------------------------------------
 .mainLoop:
 		; get and increment frame
@@ -131,6 +129,8 @@ Sin:		rs.w	SIN_LEN
 
 		; add.w	#$80,d2
 		add.w	d0,d2
+
+		move.l d0,color00-C(a6)
 
 		move.w	#R-1,d7					; d7 = iterator
 .l
