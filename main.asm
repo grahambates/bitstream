@@ -128,7 +128,7 @@ Sin:		rs.w	SIN_LEN
 
 ; Draw:
 		; Center draw screen ptr
-		sub.w	#14+140*SCREEN_BW,a0
+		sub.w	#11+140*SCREEN_BW,a0
 
 		; Get scale:
 		move.w	#SIN_LEN*2-2,d4
