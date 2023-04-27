@@ -6,7 +6,7 @@
 ********************************************************************************
 
 C = bltsize
-Screen = $d0000
+Screen = $d000
 SIN_LEN = 256
 R = 64
 
@@ -102,7 +102,6 @@ Sin:		rs.w	SIN_LEN
 		lsr.w	#4,d0
 		add.w	d0,d0
 		lea	Screen-2,a0				; a0 = screen
-		; lea	(a0,d0.w),a0
 		add.w d0,a0
 
 		move.w	d6,a3					; a3 = pixel offset - need this for plot
@@ -173,15 +172,15 @@ Cop:
 		dc.w	diwstrt,DIW_STRT
 		; dc.w	diwstop,DIW_STOP
 		dc.w	ddfstrt,DDF_STRT
-		; dc.w	ddfstop,DDF_STOP
-		; dc.w	bpl1mod,DIW_MOD
+		dc.w	ddfstop,DDF_STOP
+		dc.w	bpl1mod,DIW_MOD
 		; dc.w	bpl2mod,DIW_MOD
 
 CopPal:
-		dc.w	color00,$314
-		dc.w	color01,$ffc
+		; dc.w	color00,$314
+		; dc.w	color01,$ffc
 		dc.w	bplcon0,BPLS<<(12+DPF)!DPF<<10!$200
-		dc.w	bpl0pt,Screen>>16
+		; dc.w	bpl0pt,Screen>>16
 CopScroll:	dc.w	bplcon1,0
 CopBplPt:	dc.w	bpl0ptl,0
 		; dc.l	-2
