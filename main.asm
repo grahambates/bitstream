@@ -70,7 +70,6 @@ Sin:		rs.w	SIN_LEN
 ; Init copper:
 		lea	Cop(pc),a0
 		move.l	a0,cop1lc-C(a6)
-		; move.w	#DMASET,dmacon-C(a6)
 
 ********************************************************************************
 ; Populate sin table
@@ -95,7 +94,7 @@ Sin:		rs.w	SIN_LEN
 
 
 		; movem.w d0/d4,color00-C(a6)
-		move.l a6,color00-C(a6)
+		; move.l a6,color00-C(a6)
 
 ;-------------------------------------------------------------------------------
 .mainLoop:
@@ -129,7 +128,7 @@ Sin:		rs.w	SIN_LEN
 
 ; Draw:
 		; Center draw screen ptr
-		sub.w	#8+146*SCREEN_BW,a0
+		sub.w	#14+164*SCREEN_BW,a0
 
 		; Get scale:
 		move.w	#SIN_LEN*2-2,d4
@@ -137,7 +136,7 @@ Sin:		rs.w	SIN_LEN
 		move.w	Sin(a5,d3.w),d2
 
 		; add.w	#$80,d2
-		add.w	d0,d2
+		; add.w	d0,d2
 
 		move.w	#R-1,d7					; d7 = iterator
 .l
@@ -151,9 +150,9 @@ Sin:		rs.w	SIN_LEN
 		move.w	Sin(a5,d5.w),d0				; d0 = x
 ; scale
 		muls	d2,d1
-		asr.w	#7,d1
+		asr.w	#6,d1
 		muls	d2,d0
-		asr.w	#8,d0
+		asr.w	#7,d0
 		sub.w	a3,d0					; adjust for scroll
 
 ; Plot
@@ -176,6 +175,7 @@ Sin:		rs.w	SIN_LEN
 
 Cop:
 		dc.w	dmacon,DMAF_SPRITE
+		; dc.w 	dmacon,DMASET
 		dc.w	diwstrt,DIW_STRT
 		; dc.w	diwstop,DIW_STOP
 		dc.w	ddfstrt,DDF_STRT
@@ -183,8 +183,8 @@ Cop:
 		dc.w	bpl1mod,DIW_MOD
 
 CopPal:
-		; dc.w	color00,$314
-		; dc.w	color01,$ffc
+		dc.w	color00,$314
+		dc.w	color01,$ffc
 		dc.w	bplcon0,BPLS<<(12+DPF)!DPF<<10!$200
 		; dc.w	bpl0pt,Screen>>16
 CopScroll:	dc.w	bplcon1,0
