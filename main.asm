@@ -94,7 +94,7 @@ Sin:		rs.w	SIN_LEN
 
 
 		; movem.w d0/d4,color00-C(a6)
-		; move.l a6,color00-C(a6)
+		move.l a6,color00-C(a6)
 
 ;-------------------------------------------------------------------------------
 .mainLoop:
@@ -128,7 +128,7 @@ Sin:		rs.w	SIN_LEN
 
 ; Draw:
 		; Center draw screen ptr
-		sub.w	#14+164*SCREEN_BW,a0
+		sub.w	#14+140*SCREEN_BW,a0
 
 		; Get scale:
 		move.w	#SIN_LEN*2-2,d4
@@ -137,6 +137,8 @@ Sin:		rs.w	SIN_LEN
 
 		; add.w	#$80,d2
 		; add.w	d0,d2
+
+		mulu #3,d3
 
 		move.w	#R-1,d7					; d7 = iterator
 .l
@@ -164,7 +166,7 @@ Sin:		rs.w	SIN_LEN
 		bset	d6,(a0,d0.w)
 
 		addq	#SIN_LEN*2/R,d3				; rotate
-		subq	#2,d2
+		subq	#1,d2
 		dbf	d7,.l
 
 ; Wait eof
@@ -183,8 +185,8 @@ Cop:
 		dc.w	bpl1mod,DIW_MOD
 
 CopPal:
-		dc.w	color00,$314
-		dc.w	color01,$ffc
+		; dc.w	color00,$341
+		; dc.w	color01,$fcf
 		dc.w	bplcon0,BPLS<<(12+DPF)!DPF<<10!$200
 		; dc.w	bpl0pt,Screen>>16
 CopScroll:	dc.w	bplcon1,0
