@@ -61,7 +61,6 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		; move.w	d2,intena-C(a6)				;INTENA,
 		; move.w	d2,intreq-C(a6)				;and INTREQ
 
-
 ; Init copper:
 		lea	Cop(pc),a0
 		move.l	a0,cop1lc-C(a6)
@@ -79,14 +78,12 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		add.l	a1,d0
 		bne.b	.sin
 
-
 ; Clear initial screen:
 ; This should leave a4 at the start of the screen buffer
 		lea	Screen+SCREEN_SIZE,a4
 		move.w	#SCREEN_SIZE/4-1,d0
 .cl		clr.l	-(a4)
 		dbf	d0,.cl
-
 
 ; Use custom offset for some kind of palette!
 		movem.w	d0/a4,color00-C(a6)
@@ -131,7 +128,7 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		; This gives more variation than if it used the same period as scale.
 		mulu	#3,d3					; d3 = angle
 
-		move.w	#DOTS-1,d7				; d7 = iterator
+		moveq	#DOTS-1,d7				; d7 = iterator
 .dot
 		; y = sin(a)*scale
 		move.w	d3,d5
