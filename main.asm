@@ -93,7 +93,7 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		addq.l	#SPEED,(a5)
 		move.l	(a5),d3
 
-; Scroll screen left by frame count indefinately...
+; Scroll screen left by frame count indefinitely...
 ; We'll run out of space eventually but hopefully no one sticks around that long!
 		; byte offset
 		move.w	d3,d0
@@ -110,9 +110,8 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		move.w	d1,a3
 
 ; Clear word on right of buffer to stop data looping back round:
-		moveq	#DIW_BW,d0
 		move.w	#SCREEN_H-1,d1
-.cw		add.w	d0,a0
+.cw		lea	DIW_BW(a0),a0
 		clr.w	(a0)+
 		dbf	d1,.cw
 
@@ -164,7 +163,6 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		bne.s	.sync
 
 		bra.s	.mainLoop
-
 
 ;-------------------------------------------------------------------------------
 ; Copper list:
