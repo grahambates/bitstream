@@ -71,19 +71,19 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		lea	Data+Sin(pc),a0
 		moveq	#0,d0
 		move.w	#SIN_LEN/2+1,a1
-.l0		subq.l	#2,a1
+.sin		subq.l	#2,a1
 		move.l	d0,d1
 		asr.l	#6,d1
 		move.w	d1,(a0)+
 		neg.w	d1
 		move.w	d1,SIN_LEN-2(a0)
 		add.l	a1,d0
-		bne.b	.l0
+		bne.b	.sin
 
 ; Clear initial screen:
 ; This should leave a4 at the start of the screen buffer
 		lea	Screen+SCREEN_SIZE,a4
-		move.w	#SCREEN_SIZE/4,d0
+		move.w	#SCREEN_SIZE/4-1,d0
 .cl		clr.l	-(a4)
 		dbf	d0,.cl
 
@@ -112,9 +112,9 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 ; Clear word on right of buffer to stop data looping back round:
 		moveq	#DIW_BW,d0
 		move.w	#SCREEN_H-1,d1
-.l2		add.w	d0,a0
+.cw		add.w	d0,a0
 		clr.w	(a0)+
-		dbf	d1,.l2
+		dbf	d1,.cw
 
 ; Now we're going to draw a dot spiral...
 
@@ -122,7 +122,7 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		sub.w	#11+140*SCREEN_BW,a0
 
 		; scale = sin(frame)
-		move.w	#SIN_LEN*2-2,d4
+		move.w	#SIN_LEN*2-2,d4				; d4 = sin table mask
 		and.w	d4,d3
 		move.w	Sin(a5,d3.w),d2				; d2 = scale
 
@@ -131,7 +131,7 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		mulu	#3,d3					; d3 = angle
 
 		move.w	#DOTS-1,d7				; d7 = iterator
-.l
+.dot
 		; x = cos(a)*scale/2
 		add.w	#SIN_LEN/2,d5				; offset for cos
 		and.w	d4,d5
@@ -157,7 +157,7 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
 		addq	#SIN_LEN*2/DOTS,d3			; increment angle
 		subq	#1,d2					; decrment scale (this creates the sprial)
-		dbf	d7,.l
+		dbf	d7,.dot
 
 ; Wait EOF
 .sync		cmp.b	vhposr-C(a6),d7
