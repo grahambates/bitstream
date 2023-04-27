@@ -5,8 +5,8 @@
 * Constants:
 ********************************************************************************
 
-C = bltsize
-Screen = $d000
+C = vhposr
+Screen = $4000
 SIN_LEN = 256
 R = 64
 
@@ -20,9 +20,9 @@ DPF = 0								; enable dual playfield
 
 ; Screen buffer:
 SCREEN_W = DIW_W+16
-SCREEN_H = DIW_H
+SCREEN_H = DIW_H+16
 
-DMASET = DMAF_SETCLR!DMAF_MASTER!DMAF_RASTER!DMAF_COPPER!DMAF_BLITTER
+DMASET = DMAF_SETCLR!DMAF_MASTER!DMAF_RASTER!DMAF_COPPER
 INTSET = INTF_SETCLR!INTF_INTEN!INTF_VERTB
 
 ;-------------------------------------------------------------------------------
@@ -87,6 +87,16 @@ Sin:		rs.w	SIN_LEN
 		add.l	a1,d0
 		bne.b	.l0
 
+; Clear initial screen:
+		lea Screen+SCREEN_SIZE,a4
+		move.w	#SCREEN_SIZE/4,d0
+.cl		clr.l -(a4)
+		dbf d0,.cl
+
+
+		; movem.w d0/d4,color00-C(a6)
+		move.l a6,color00-C(a6)
+
 ;-------------------------------------------------------------------------------
 .mainLoop:
 		; get and increment frame
@@ -101,8 +111,8 @@ Sin:		rs.w	SIN_LEN
 		not.w	d6
 		lsr.w	#4,d0
 		add.w	d0,d0
-		lea	Screen-2,a0				; a0 = screen
-		add.w d0,a0
+		move.l	a4,a0				; a0 = screen
+		add.w	d0,a0
 
 		move.w	d6,a3					; a3 = pixel offset - need this for plot
 
@@ -110,17 +120,16 @@ Sin:		rs.w	SIN_LEN
 		move.w	d6,CopScroll-Data+2(a5)
 		move.w	a0,CopBplPt-Data+2(a5)
 
-; Clear rhs word:
+; Clear rhs:
 		moveq	#DIW_BW,d0
-		add.w	d0,a0
-		move.w	d0,bltdmod-C(a6)
-		move.w	#$100,bltcon0-C(a6)
-		move.l	a0,bltdpt-C(a6)
-		move.w	#300*BPLS*64+1,(a6)
+		move.w #SCREEN_H-1,d1
+.l2		add.w	d0,a0
+		clr.w 	(a0)+
+		dbf	d1,.l2
 
 ; Draw:
 		; Center draw screen ptr
-		add.w	#32+110*SCREEN_BW,a0
+		sub.w	#8+146*SCREEN_BW,a0
 
 		; Get scale:
 		move.w	#SIN_LEN*2-2,d4
@@ -129,8 +138,6 @@ Sin:		rs.w	SIN_LEN
 
 		; add.w	#$80,d2
 		add.w	d0,d2
-
-		move.l d0,color00-C(a6)
 
 		move.w	#R-1,d7					; d7 = iterator
 .l
@@ -144,9 +151,9 @@ Sin:		rs.w	SIN_LEN
 		move.w	Sin(a5,d5.w),d0				; d0 = x
 ; scale
 		muls	d2,d1
-		asr.w	#6,d1
+		asr.w	#7,d1
 		muls	d2,d0
-		asr.w	#7,d0
+		asr.w	#8,d0
 		sub.w	a3,d0					; adjust for scroll
 
 ; Plot
