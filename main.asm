@@ -121,14 +121,14 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		; Offset a0 to center of screen:
 		sub.w	#11+140*SCREEN_BW,a0
 
-		; Get scale (sin(frame)):
+		; scale = sin(frame)
 		move.w	#SIN_LEN*2-2,d4
 		and.w	d4,d3
-		move.w	Sin(a5,d3.w),d2
+		move.w	Sin(a5,d3.w),d2				; d2 = scale
 
 		; Use frame*3 as start angle for rotation.
 		; This gives more variation than if it used the same period as scale.
-		mulu	#3,d3
+		mulu	#3,d3					; d3 = angle
 
 		move.w	#DOTS-1,d7				; d7 = iterator
 .l
@@ -177,8 +177,6 @@ Cop:
 		dc.w	ddfstrt,DDF_STRT
 		dc.w	ddfstop,DDF_STOP
 		dc.w	bpl1mod,DIW_MOD
-
-CopPal:
 		; dc.w	color00,$341
 		; dc.w	color01,$fcf
 		dc.w	bplcon0,BPLS<<(12+DPF)!DPF<<10!$200
