@@ -1,10 +1,6 @@
 		incdir	"include"
 		include	"hw.i"
 
-********************************************************************************
-* Constants:
-********************************************************************************
-
 C = vhposr							; At least one of our custom reg writes can be (An) rather than (d,An)
 Screen = $1000							; Use a fixed address for screen buffer
 SIN_LEN = 256
@@ -52,9 +48,11 @@ DIW_STOP = ((DIW_YSTOP-256)<<8)!(DIW_XSTOP-256)
 DDF_STRT = ((DIW_XSTRT-17)>>1)&$00fc-SCROLL*8
 DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
+
 ********************************************************************************
 		code_c
 ********************************************************************************
+
 		lea	Data(pc),a5
 		lea	custom+C,a6
 
@@ -174,7 +172,7 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 ; Copper list:
 ; Some sacrafices have to be made here!
 Cop:
-		dc.w	dmacon,DMAF_SPRITE
+		dc.w	dmacon,DMAF_SPRITE ; Disable sprite DMA
 		; dc.w 	dmacon,DMASET
 		dc.w	diwstrt,DIW_STRT
 		; dc.w	diwstop,DIW_STOP
