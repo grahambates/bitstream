@@ -132,6 +132,13 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
 		move.w	#DOTS-1,d7				; d7 = iterator
 .dot
+		; y = sin(a)*scale
+		move.w	d3,d5
+		and.w	d4,d5
+		move.w	Sin(a5,d5.w),d1
+		muls	d2,d1
+		asr.w	#6,d1
+
 		; x = cos(a)*scale/2
 		add.w	#SIN_LEN/2,d5				; offset for cos
 		and.w	d4,d5
@@ -139,13 +146,6 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		muls	d2,d0
 		asr.w	#7,d0					; half x for some kind of perspective
 		sub.w	a3,d0					; adjust for bplcon0 scroll
-
-		; y = sin(a)*scale
-		move.w	d3,d5
-		and.w	d4,d5
-		move.w	Sin(a5,d5.w),d1
-		muls	d2,d1
-		asr.w	#6,d1
 
 		; Plot point:
 		mulu	#SCREEN_BW,d1
