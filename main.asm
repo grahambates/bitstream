@@ -91,7 +91,7 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 .mainLoop:
 ; Increment and read frame:
 		addq.l	#SPEED,(a5)
-		move.l	(a5),d3
+		move.l	(a5),d3					; d3 = frame
 
 ; Scroll screen left by frame count indefinitely...
 ; We'll run out of space eventually but hopefully no one sticks around that long!
@@ -102,12 +102,10 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		lea	(a4,d0),a0				; a0 = screen
 		move.w	a0,CopBplPt-Data+2(a5)
 		; px shift
-		moveq	#15,d1
-		and.w	d3,d1
-		not.w	d1
-		move.w	d1,CopScroll-Data+2(a5)
-		; store in a spare register - need this later for plot offset
-		move.w	d1,a3
+		moveq	#15,d6
+		and.w	d3,d6
+		not.w	d6					; d6 = shift (need this later for plot offset)
+		move.w	d6,CopScroll-Data+2(a5)
 
 ; Clear word on right of buffer to stop data looping back round:
 		move.w	#SCREEN_H-1,d1
@@ -144,15 +142,15 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		move.w	Sin(a5,d5.w),d0
 		muls	d2,d0
 		asr.w	#7,d0					; half x for some kind of perspective
-		sub.w	a3,d0					; adjust for bplcon0 scroll
+		sub.w	d6,d0					; adjust for bplcon0 scroll
 
 		; Plot point:
 		mulu	#SCREEN_BW,d1
-		move.w	d0,d6
-		not.w	d6
+		move.w	d0,d5
+		not.w	d5
 		asr.w	#3,d0
 		add.w	d1,d0
-		bset	d6,(a0,d0.w)
+		bset	d5,(a0,d0.w)
 
 		addq	#SIN_LEN*2/DOTS,d3			; increment angle
 		subq	#1,d2					; decrment scale (this creates the sprial)
@@ -168,7 +166,7 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 ; Copper list:
 ; Some sacrafices have to be made here!
 Cop:
-		dc.w	dmacon,DMAF_SPRITE ; Disable sprite DMA
+		dc.w	dmacon,DMAF_SPRITE			; Disable sprite DMA
 		; dc.w 	dmacon,DMASET
 		dc.w	diwstrt,DIW_STRT
 		; dc.w	diwstop,DIW_STOP
