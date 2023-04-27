@@ -1,16 +1,14 @@
-
-		code_c
-
 		incdir	"include"
 		include	"hw.i"
-		; include	"debug.i"
-
-		xdef	_start
-_start:
 
 ********************************************************************************
 * Constants:
 ********************************************************************************
+
+C = bltsize
+Screen = $d0000
+SIN_LEN = 256
+R = 64
 
 ; Display window:
 DIW_W = 320
@@ -22,10 +20,9 @@ DPF = 0								; enable dual playfield
 
 ; Screen buffer:
 SCREEN_W = DIW_W+16
-SCREEN_H = 320
+SCREEN_H = DIW_H
 
-DMASET = DMAF_SETCLR!DMAF_MASTER!DMAF_RASTER!DMAF_COPPER!DMAF_BLITTER
-INTSET = INTF_SETCLR!INTF_INTEN!INTF_VERTB
+DMASET = DMAF_SETCLR!DMAF_RASTER!DMAF_COPPER!DMAF_BLITTER
 
 ;-------------------------------------------------------------------------------
 ; Derived
@@ -54,19 +51,14 @@ DIW_STOP = ((DIW_YSTOP-256)<<8)!(DIW_XSTOP-256)
 DDF_STRT = ((DIW_XSTRT-17)>>1)&$00fc-SCROLL*8
 DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
-C = bltsize
-
 		rsreset
 VBlank:		rs.l	1
 Sin:		rs.w	SIN_LEN
 
-Screen = $d0000
-
-SIN_LEN = 256
-
 ********************************************************************************
-Demo:
+		code_c
 ********************************************************************************
+
 ; Minimal startup:
 		lea	custom+C,a6
 		; move.w	#$7fff,d2				;clear all bits
@@ -85,14 +77,14 @@ Demo:
 		lea	Data+Sin(pc),a0
 		moveq	#0,d0					; amp=16384, length=1024
 		move.w	#SIN_LEN/2+1,a1
-.Loop5		subq.l	#2,a1
+.l0		subq.l	#2,a1
 		move.l	d0,d1
 		asr.l	#6,d1
 		move.w	d1,(a0)+
 		neg.w	d1
 		move.w	d1,SIN_LEN-2(a0)
 		add.l	a1,d0
-		bne.b	.Loop5
+		bne.b	.l0
 
 ;-------------------------------------------------------------------------------
 .mainLoop:
@@ -118,42 +110,35 @@ Demo:
 		move.w	a0,CopBplPt-Data+2(a5)
 
 ; Clear rhs word:
-		lea	DIW_BW(a0),a1
-		move.w	#DIW_BW,bltdmod-C(a6)
+		moveq	#DIW_BW,d0
+		add.w	d0,a0
+		move.w	d0,bltdmod-C(a6)
 		move.w	#$100,bltcon0-C(a6)
-		; move.l	#$01000000,bltcon0-C(a6)
-		move.l	a1,bltdpt-C(a6)
-		move.w	#SCREEN_H*BPLS*64+1,bltsize-C(a6)
+		move.l	a0,bltdpt-C(a6)
+		move.w	#300*BPLS*64+1,bltsize-C(a6)
 
 ; Draw:
 		; Center draw screen ptr
-		lea	30+(160*SCREEN_BW)(a0),a0
+		lea	32+(110*SCREEN_BW)(a0),a0
 
 		; Get scale:
-		move.w	d3,d5
-		bsr.s	LookupSin
-		move.w	d0,d2
+		move.w	#SIN_LEN*2-2,d4
+		and.w	d4,d3
+		move.w	Sin(a5,d3.w),d2
 
-		; divu	#3,d5					; double effect
-		; ;asl #2,d5
-		; bsr.s	LookupSin
+		add.w	#$80,d2
 		; add.w	d0,d2
 
-		; and.w #2,d5
-		; lsl d5,d2
-
-		add.w	#$60,d2
-
-R = 64
 		move.w	#R-1,d7					; d7 = iterator
 .l
 ; circle coords
 		move.w	d3,d5
-		bsr	LookupSin
-		move.w	d0,d1					; d1=y
+		and.w	d4,d5
+		move.w	Sin(a5,d5.w),d1				; d1 = y
 
 		add.w	#SIN_LEN/2,d5				; offset for cos
-		bsr	LookupSin				; d0 = x
+		and.w	d4,d5
+		move.w	Sin(a5,d5.w),d0				; d0 = x
 ; scale
 		muls	d2,d1
 		asr.w	#7,d1
@@ -169,8 +154,8 @@ R = 64
 		add.w	d1,d0
 		bset	d6,(a0,d0.w)
 
-		add.w	#SIN_LEN*2/R,d3				; rotate
-		subq #2,d2
+		addq	#SIN_LEN*2/R,d3				; rotate
+		subq	#2,d2
 		dbf	d7,.l
 
 ; Wait eof
@@ -179,15 +164,11 @@ R = 64
 		bne.s	.sync
 		bra	.mainLoop
 
-LookupSin:
-		and.w	#SIN_LEN*2-2,d5
-		move.w	Sin(a5,d5.w),d0				; d0 = x
-		rts
-
 Cop:
 		dc.w	dmacon,DMAF_SPRITE
+		;dc.w	dmacon,DMASET
 		; dc.w	fmode,0
-		;dc.w	diwstrt,DIW_STRT
+		dc.w	diwstrt,DIW_STRT
 		; dc.w	diwstop,DIW_STOP
 		dc.w	ddfstrt,DDF_STRT
 		; dc.w	ddfstop,DDF_STOP
@@ -195,8 +176,8 @@ Cop:
 		; dc.w	bpl2mod,DIW_MOD
 
 CopPal:
-		; dc.w	color00,$000
-		; dc.w	color01,$fff
+		dc.w	color00,$314
+		; dc.w	color01,$ffc
 		dc.w	bplcon0,BPLS<<(12+DPF)!DPF<<10!$200
 		dc.w	bpl0pt,Screen>>16
 CopScroll:	dc.w	bplcon1,0
