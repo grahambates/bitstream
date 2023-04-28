@@ -6,7 +6,7 @@ Screen = $1cae							; Use a fixed address for screen buffer
 	; this doubles a color01
 SIN_LEN = 256
 DOTS = 64
-SPEED = 1
+SPEED = 2
 
 ; Display window:
 DIW_W = 320
@@ -85,9 +85,6 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 .cl		clr.l	-(a4)
 		dbf	d0,.cl
 
-; Use custom offset for some kind of palette!
-		movem.w	d0/a4,color00-C(a6)
-
 ;-------------------------------------------------------------------------------
 .mainLoop:
 ; Increment and read frame:
@@ -108,6 +105,8 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		not.w	d6					; d6 = shift (need this later for plot offset)
 		move.w	d6,CopScroll-Data+2(a5)
 
+
+
 ; Clear word on right of buffer to stop data looping back round:
 		move.w	#SCREEN_H-1,d1
 .cw		lea	SCREEN_BW-2(a0),a0
@@ -123,6 +122,10 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		move.w	#SIN_LEN*2-2,d4				; d4 = sin table mask
 		and.w	d4,d3
 		move.w	Sin(a5,d3.w),d2				; d2 = scale
+
+
+; Use custom offset for some kind of palette!
+		movem.w	d0/d1,color00-C(a6)
 
 		; Use frame*3 as start angle for rotation.
 		; This gives more variation than if it used the same period as scale.
