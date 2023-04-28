@@ -6,7 +6,7 @@ Screen = $1cae							; Use a fixed address for screen buffer
 	; this doubles a color01
 SIN_LEN = 256
 DOTS = 64
-SPEED = 1
+SPEED = 2
 
 ; Display window:
 DIW_W = 320
@@ -126,9 +126,11 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
 		; Use frame*3 as start angle for rotation.
 		; This gives more variation than if it used the same period as scale.
-		mulu	#3,d3					; d3 = angle
+		; mulu	#3,d3					; d3 = angle
 
-		moveq	#DOTS-1,d7				; d7 = iterator
+		move.w	d0,d7				; d7 = iterator
+		and.w d4,d7
+		lsr #1,d7
 .dot
 		; y = sin(a)*scale
 		move.w	d3,d5
