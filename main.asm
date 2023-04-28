@@ -117,7 +117,7 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 ; Now we're going to draw a dot spiral...
 
 		; Offset a0 to center of screen:
-		sub.w	#11+140*SCREEN_BW,a0
+		sub.w	#12+140*SCREEN_BW,a0
 
 		; scale = sin(frame)
 		move.w	#SIN_LEN*2-2,d4				; d4 = sin table mask
