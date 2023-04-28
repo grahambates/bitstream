@@ -6,7 +6,7 @@ Screen = $1cae							; Use a fixed address for screen buffer
 	; this doubles a color01
 SIN_LEN = 256
 DOTS = 64
-SPEED = 2
+SPEED = 1
 
 ; Display window:
 DIW_W = 320
@@ -123,9 +123,9 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		and.w	d4,d3
 		move.w	Sin(a5,d3.w),d2				; d2 = scale
 
-
-; Use custom offset for some kind of palette!
-		movem.w	d0/d1,color00-C(a6)
+; Use custom for some kind of palette!
+		lsr.w	#4,d0
+		movem.w	d0/d4,color00-C(a6)
 
 		; Use frame*3 as start angle for rotation.
 		; This gives more variation than if it used the same period as scale.
