@@ -5,7 +5,6 @@ C = vhposr							; At least one of our custom reg writes can be (An) rather than
 Screen = $1cae							; Use a fixed address for screen buffer
 	; this doubles a color01
 SIN_LEN = 256
-DOTS = 64
 SPEED = 2
 
 ; Display window:
@@ -17,7 +16,7 @@ INTERLEAVED = 0
 DPF = 0								; enable dual playfield?
 
 ; Screen buffer:
-SCREEN_W = DIW_W+16
+SCREEN_W = DIW_W+64
 SCREEN_H = DIW_H+16
 
 DMASET = DMAF_SETCLR!DMAF_MASTER!DMAF_RASTER!DMAF_COPPER
@@ -117,7 +116,7 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 ; Now we're going to draw a dot spiral...
 
 		; Offset a0 to center of screen:
-		sub.w	#12+140*SCREEN_BW,a0
+		sub.w	#14+140*SCREEN_BW,a0
 
 		; scale = sin(frame)
 		move.w	#SIN_LEN*2-2,d4				; d4 = sin table mask
@@ -130,7 +129,7 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
 		move.w	d0,d7				; d7 = iterator
 		and.w d4,d7
-		lsr #1,d7
+		lsr #2,d7
 .dot
 		; y = sin(a)*scale
 		move.w	d3,d5
@@ -155,7 +154,7 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		add.w	d1,d0
 		bset	d5,(a0,d0.w)
 
-		addq	#SIN_LEN*2/DOTS,d3			; increment angle
+		addq	#8,d3			; increment angle
 		subq	#1,d2					; decrment scale (this creates the sprial)
 		dbf	d7,.dot
 
