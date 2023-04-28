@@ -123,7 +123,7 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		and.w	d4,d3
 		move.w	Sin(a5,d3.w),d2				; d2 = scale
 
-; Use custom for some kind of palette!
+; Use offset and mask values for some kind of palette!
 		lsr.w	#4,d0
 		movem.w	d0/d4,color00-C(a6)
 
