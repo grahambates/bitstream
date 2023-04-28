@@ -1,9 +1,9 @@
 		incdir	"include"
 		include	"hw.i"
 
-C = vhposr							; At least one of our custom reg writes can be (An) rather than (d,An)
-Screen = $1cae							; Use a fixed address for screen buffer
-	; this doubles a color01
+C = dmacon							; At least one of our custom reg writes can be (An) rather than (d,An)
+Screen = $7fac							; Use a fixed address for screen buffer
+; this doubles a color01
 SIN_LEN = 256
 SPEED = 2
 
@@ -52,13 +52,13 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 ********************************************************************************
 
 		lea	Data(pc),a5
-		lea	custom+C,a6
+		lea	custom+diwstrt,a6
 
-; No space for this ¯\_(ツ)_/¯
-		; move.w	#$7fff,d2				;clear all bits
-		; move.w	d2,dmacon-C(a6)				;in DMACON,
-		; move.w	d2,intena-C(a6)				;INTENA,
-		; move.w	d2,intreq-C(a6)				;and INTREQ
+		move.l #DIW_STRT<<16!DIW_STOP,(a6)+
+		move.l #DDF_STRT<<16!DDF_STOP,(a6)+
+		move.w #DMAF_AUDIO!DMAB_DISK!DMAF_SPRITE!DMAB_BLITTER,(a6)
+		; move.w #$7fff,(a6)
+		; move.w #DMASET,(a6)
 
 ; Init copper:
 		lea	Cop(pc),a0
@@ -96,10 +96,10 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 ; Scroll screen left by frame count indefinitely...
 ; We'll run out of space eventually but hopefully no one sticks around that long!
 		; byte offset
-		move.w	d3,d0
-		lsr.w	#4,d0
-		add.w	d0,d0
-		lea	(a4,d0),a0				; a0 = screen
+		move.w	d3,d7
+		lsr.w	#4,d7
+		add.w	d7,d7
+		lea	(a4,d7),a0				; a0 = screen
 		move.w	a0,CopBplPt-Data+2(a5)
 		; px shift
 		moveq	#15,d6
@@ -116,20 +116,16 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 ; Now we're going to draw a dot spiral...
 
 		; Offset a0 to center of screen:
-		sub.w	#14+140*SCREEN_BW,a0
+		lea	-14-140*SCREEN_BW(a0),a0
 
 		; scale = sin(frame)
 		move.w	#SIN_LEN*2-2,d4				; d4 = sin table mask
 		and.w	d4,d3
 		move.w	Sin(a5,d3.w),d2				; d2 = scale
 
-		; Use frame*3 as start angle for rotation.
-		; This gives more variation than if it used the same period as scale.
-		; mulu	#3,d3					; d3 = angle
-
-		move.w	d0,d7				; d7 = iterator
-		and.w d4,d7
-		lsr #2,d7
+		; Use screen byte offset for dot count
+		and.w	d4,d7
+		lsr	#2,d7
 .dot
 		; y = sin(a)*scale
 		move.w	d3,d5
@@ -154,7 +150,7 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		add.w	d1,d0
 		bset	d5,(a0,d0.w)
 
-		addq	#8,d3			; increment angle
+		addq	#8,d3					; increment angle
 		subq	#1,d2					; decrment scale (this creates the sprial)
 		dbf	d7,.dot
 
@@ -168,15 +164,7 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 ; Copper list:
 ; Some sacrifices have to be made here!
 Cop:
-		dc.w	dmacon,DMAF_SPRITE			; Disable sprite DMA
-		; dc.w 	dmacon,DMASET
-		dc.w	diwstrt,DIW_STRT
-		; dc.w	diwstop,DIW_STOP
-		dc.w	ddfstrt,DDF_STRT
-		dc.w	ddfstop,DDF_STOP
 		dc.w	bpl1mod,DIW_MOD
-		; dc.w	color00,$341
-		; dc.w	color01,$fcf
 		dc.w	bplcon0,BPLS<<(12+DPF)!DPF<<10!$200
 		; dc.w	bpl0pt,Screen>>16
 CopScroll:	dc.w	bplcon1,0

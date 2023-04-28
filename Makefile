@@ -6,7 +6,7 @@ FSUAE = /Applications/FS-UAE-3.app/Contents/MacOS/fs-uae
 VASM = ~/amiga/bin/vasmm68k_mot
 
 VASMFLAGS = -m68000 -x -opt-size -showopt -Fhunkexe -kick1hunks -nosym -pic
-UAEFLAGS = --amiga_model=A500 --floppy_drive_0_sounds=off --video_sync=1
+UAEFLAGS = --amiga_model=A600 --floppy_drive_0_sounds=off --video_sync=1
 
 exe: $(program).exe
 
