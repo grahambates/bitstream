@@ -165,7 +165,7 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
 ;-------------------------------------------------------------------------------
 ; Copper list:
-; Some sacrafices have to be made here!
+; Some sacrifices have to be made here!
 Cop:
 		dc.w	dmacon,DMAF_SPRITE			; Disable sprite DMA
 		; dc.w 	dmacon,DMASET
