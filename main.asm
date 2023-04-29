@@ -65,7 +65,7 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		move.w	#SIN_LEN/2+1,a1
 .sin		subq.l	#2,a1
 		move.l	d0,d1
-		asr.l	#6,d1
+		asr.l	#6,d1					; this determines the amplitude
 		move.w	d1,(a0)+
 		neg.w	d1
 		move.w	d1,SIN_LEN-2(a0)
@@ -167,8 +167,8 @@ Cop:
 		dc.w	bpl1mod,DIW_MOD
 		dc.w	bplcon0,BPLS<<(12+DPF)!DPF<<10!$200
 		; dc.w	bpl0pt,Screen>>16
-CopScroll:	dc.w	bplcon1,0
 CopBplPt:	dc.w	bpl0ptl,0
+CopScroll:	dc.w	bplcon1,0
 		; dc.l	-2
 
 
