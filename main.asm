@@ -1,9 +1,10 @@
 		incdir	"include"
 		include	"hw.i"
 
-C = dmacon							; At least one of our custom reg writes can be (An) rather than (d,An)
-Screen = $7fac							; Use a fixed address for screen buffer
-; this doubles a color01
+; Use a fixed address for screen buffer
+; this doubles as color01
+Screen = $71bc
+
 SIN_LEN = 256
 SPEED = 2
 
@@ -18,8 +19,6 @@ DPF = 0								; enable dual playfield?
 ; Screen buffer:
 SCREEN_W = DIW_W+64
 SCREEN_H = DIW_H+16
-
-DMASET = DMAF_SETCLR!DMAF_MASTER!DMAF_RASTER!DMAF_COPPER
 
 ;-------------------------------------------------------------------------------
 ; Derived
@@ -54,15 +53,13 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		lea	Data(pc),a5
 		lea	custom+diwstrt,a6
 
-		move.l #DIW_STRT<<16!DIW_STOP,(a6)+
-		move.l #DDF_STRT<<16!DDF_STOP,(a6)+
-		move.w #DMAF_AUDIO!DMAB_DISK!DMAF_SPRITE!DMAB_BLITTER,(a6)
-		; move.w #$7fff,(a6)
-		; move.w #DMASET,(a6)
+		move.l	#DIW_STRT<<16!DIW_STOP,(a6)+
+		move.l	#DDF_STRT<<16!DDF_STOP,(a6)+
+		move.w	#DMAF_AUDIO!DMAB_DISK!DMAF_SPRITE!DMAB_BLITTER,(a6) ; Disable DMA
 
 ; Init copper:
 		lea	Cop(pc),a0
-		move.l	a0,cop1lc-C(a6)
+		move.l	a0,cop1lc-dmacon(a6)
 
 ; Init sin table:
 		lea	Data+Sin(pc),a0
@@ -84,8 +81,10 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 .cl		clr.l	-(a4)
 		dbf	d0,.cl
 
-; Use custom offset for some kind of palette!
-		movem.w	d0/a4,color00-C(a6)
+; Palette:
+; use d0 (currently -1) for color00
+; use screen address for color01
+		movem.w	d0/a4,color00-dmacon(a6)
 
 ;-------------------------------------------------------------------------------
 .mainLoop:
@@ -115,8 +114,8 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
 ; Now we're going to draw a dot spiral...
 
-		; Offset a0 to center of screen:
-		lea	-14-140*SCREEN_BW(a0),a0
+		; Offset a0 to center/right of screen:
+		sub.w	#14+140*SCREEN_BW,a0
 
 		; scale = sin(frame)
 		move.w	#SIN_LEN*2-2,d4				; d4 = sin table mask
@@ -155,7 +154,7 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 		dbf	d7,.dot
 
 ; Wait EOF
-.sync		cmp.b	vhposr-C(a6),d7
+.sync		cmp.b	vhposr-dmacon(a6),d7
 		bne.s	.sync
 
 		bra.s	.mainLoop
