@@ -164,7 +164,6 @@ Cop:
 		; disable DMA:
 		; Good idea to do this in the Copper so we only disable sprites in the vbl
 		dc.w	dmacon,DMAF_AUDIO!DMAF_DISK!DMAF_SPRITE!DMAF_BLITTER
-		printv DIW_MOD
 		dc.w	bpl1mod,DIW_MOD
 		dc.w	bplcon0,BPLS<<(12+DPF)!DPF<<10!$200
 		; dc.w	bpl0pt,Screen>>16
