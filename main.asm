@@ -52,10 +52,8 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
 		lea	Data(pc),a5
 		lea	custom+diwstrt,a6
-
 		move.l	#DIW_STRT<<16!DIW_STOP,(a6)+
 		move.l	#DDF_STRT<<16!DDF_STOP,(a6)+
-		move.w	#DMAF_AUDIO!DMAF_DISK!DMAF_SPRITE!DMAF_BLITTER,(a6) ; Disable DMA
 
 ; Init copper:
 		lea	Cop(pc),a0
@@ -163,6 +161,10 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 ; Copper list:
 ; Some sacrifices have to be made here!
 Cop:
+		; disable DMA:
+		; Good idea to do this in the Copper so we only disable sprites in the vbl
+		dc.w	dmacon,DMAF_AUDIO!DMAF_DISK!DMAF_SPRITE!DMAF_BLITTER
+		printv DIW_MOD
 		dc.w	bpl1mod,DIW_MOD
 		dc.w	bplcon0,BPLS<<(12+DPF)!DPF<<10!$200
 		; dc.w	bpl0pt,Screen>>16

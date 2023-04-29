@@ -1,4 +1,4 @@
-MODEL=A1200
+MODEL=A500
 BINDIR = ~/amiga/bin/
 VASM = $(BINDIR)vasmm68k_mot
 VASMFLAGS = -m68000 -x -opt-size -showopt -Fhunkexe -kick1hunks -nosym -pic
