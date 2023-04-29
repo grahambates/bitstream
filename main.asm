@@ -55,7 +55,7 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
 		move.l	#DIW_STRT<<16!DIW_STOP,(a6)+
 		move.l	#DDF_STRT<<16!DDF_STOP,(a6)+
-		move.w	#DMAF_AUDIO!DMAB_DISK!DMAF_SPRITE!DMAB_BLITTER,(a6) ; Disable DMA
+		move.w	#DMAF_AUDIO!DMAF_DISK!DMAF_SPRITE!DMAF_BLITTER,(a6) ; Disable DMA
 
 ; Init copper:
 		lea	Cop(pc),a0
