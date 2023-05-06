@@ -3,7 +3,7 @@
 
 ; Use a fixed address for screen buffer
 ; this doubles as color01
-Screen = $71bc
+Screen = $41bc
 
 SIN_LEN = 256
 SPEED = 2
